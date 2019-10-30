@@ -13,6 +13,7 @@ class CameraViewController: UIViewController {
 
 	// AVCaptureSession
 	lazy private var captureSession = AVCaptureSession()
+	lazy private var fileOutput = AVCaptureMovieFileOutput()
 	
     @IBOutlet var recordButton: UIButton!
     @IBOutlet var cameraView: CameraPreviewView!
@@ -38,6 +39,15 @@ class CameraViewController: UIViewController {
 		captureSession.stopRunning()
 	}
 
+	// CMTime (timeValue, timeScale)
+	// Seek to a time, you need construct a CMTime object based on the current time
+	// 30 FPS (Frames per second)
+	// 1 = CMTIme(1, 30)  = 1/30  = 0.033333 seconds
+	// 2 = CMTime(2, 30) =  2/30  = 0.066667 seconds
+	// 3 = CMTime(3, 30)
+	//	CMTime.zero
+	// 600 recommended = 30, 60, 24
+	
 	
 	private func setUpSession() {
 		
@@ -64,7 +74,12 @@ class CameraViewController: UIViewController {
 		
 		// TODO: Add the audio input
 		
-		// TODO: Add recording
+		
+		// Output (movie recording)
+		guard captureSession.canAddOutput(fileOutput) else {
+			fatalError("Cannot record video to a movie file")
+		}
+		captureSession.addOutput(fileOutput)
 		
 		captureSession.commitConfiguration()
 		cameraView.session = captureSession
@@ -87,7 +102,39 @@ class CameraViewController: UIViewController {
 	}
 
     @IBAction func recordButtonPressed(_ sender: Any) {
+		if fileOutput.isRecording {
+			// stop recording
+			fileOutput.stopRecording()
+			// TODO: play the video
+		} else {
+			// start recording
+			fileOutput.startRecording(to: newRecordingURL(), recordingDelegate: self)
+		}
+	}
+	
+	// Helper to save to documents directory
+	func newRecordingURL() -> URL {
+		let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+		
+		let formatter = ISO8601DateFormatter()
+		formatter.formatOptions = [.withDashSeparatorInDate]
+		
+		let name = formatter.string(from: Date())
+		let fileURL = documentsDirectory.appendingPathComponent(name).appendingPathExtension("mov")
+		return fileURL
+	}
+}
 
+// Conform to delegate: AVCaptureFileOutputRecordingDelegate
+
+extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
+	func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+		
+		
+		
+	}
+	
+	func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
 	}
 }
 
