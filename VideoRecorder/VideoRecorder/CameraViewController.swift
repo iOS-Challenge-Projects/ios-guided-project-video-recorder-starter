@@ -15,6 +15,8 @@ class CameraViewController: UIViewController {
 	lazy private var captureSession = AVCaptureSession()
 	lazy private var fileOutput = AVCaptureMovieFileOutput()
 	
+	var player: AVPlayer!
+	
     @IBOutlet var recordButton: UIButton!
     @IBOutlet var cameraView: CameraPreviewView!
 
@@ -23,6 +25,29 @@ class CameraViewController: UIViewController {
 		super.viewDidLoad()
 		
 		setUpSession()
+		
+		let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
+	//		tapGesture.numberOfTouchesRequired = 2 // Flip our camera
+		
+		view.addGestureRecognizer(tapGesture)
+	}
+
+	@objc func handleTapGesture(_ tapGesture: UITapGestureRecognizer) {
+		print("handleTapGesture")
+		
+		switch tapGesture.state {
+		case .ended:
+			playRecording()
+		default:
+			print("Handle other states: \(tapGesture.state.rawValue)")
+		}
+	}
+
+	private func playRecording() {
+		if let player = player {
+			player.seek(to: CMTime.zero)  // seek to the beginning of the video
+			player.play()
+		}
 	}
 	
 	override func viewWillAppear(_ animated: Bool) {
@@ -67,10 +92,10 @@ class CameraViewController: UIViewController {
 		
 		
 		// Set video mode
-		if captureSession.canSetSessionPreset(.hd4K3840x2160) {
-			captureSession.sessionPreset = .hd4K3840x2160
-			print("4K support!!!")
-		}
+//		if captureSession.canSetSessionPreset(.hd4K3840x2160) {
+//			captureSession.sessionPreset = .hd4K3840x2160
+//			print("4K support!!!")
+//		}
 		
 		// Add audio input
 		let microphone = bestAudio()
@@ -137,6 +162,28 @@ class CameraViewController: UIViewController {
 		let fileURL = documentsDirectory.appendingPathComponent(name).appendingPathExtension("mov")
 		return fileURL
 	}
+	
+	private func playMovie(url: URL) {
+		player = AVPlayer(url: url)
+		
+		// Create the layer
+		
+		let playerLayer = AVPlayerLayer(player: player)
+
+		// Configure size
+		var topCornerRect = self.view.bounds
+		topCornerRect.size.width /= 4
+		topCornerRect.size.height /= 4
+		topCornerRect.origin.y = view.layoutMargins.top
+		
+		playerLayer.frame = topCornerRect
+		self.view.layer.addSublayer(playerLayer)
+		
+		player.play()
+		
+		// video gravity
+	}
+	
 }
 
 // Conform to delegate: AVCaptureFileOutputRecordingDelegate
@@ -150,6 +197,7 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
 		
 		print("didFinishRecordingTo: \(outputFileURL)")
 		
+		playMovie(url: outputFileURL)
 	}
 	
 	func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
