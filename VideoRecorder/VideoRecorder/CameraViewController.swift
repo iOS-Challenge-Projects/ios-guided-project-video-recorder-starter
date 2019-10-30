@@ -117,7 +117,7 @@ class CameraViewController: UIViewController {
 		let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
 		
 		let formatter = ISO8601DateFormatter()
-		formatter.formatOptions = [.withDashSeparatorInDate]
+		formatter.formatOptions = [.withInternetDateTime]
 		
 		let name = formatter.string(from: Date())
 		let fileURL = documentsDirectory.appendingPathComponent(name).appendingPathExtension("mov")
@@ -130,11 +130,17 @@ class CameraViewController: UIViewController {
 extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
 	func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
 		
+		if let error = error {
+			print("File Recording Error: \(error)")
+		}
 		
+		print("didFinishRecordingTo: \(outputFileURL)")
 		
 	}
 	
 	func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
+		
+		print("didStartRecordingTo: \(fileURL)")
 	}
 }
 
