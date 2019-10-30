@@ -72,8 +72,15 @@ class CameraViewController: UIViewController {
 			print("4K support!!!")
 		}
 		
-		// TODO: Add the audio input
-		
+		// Add audio input
+		let microphone = bestAudio()
+		guard let audioInput = try? AVCaptureDeviceInput(device: microphone) else {
+			fatalError("Can't create input from microphone")
+		}
+		guard captureSession.canAddInput(audioInput) else {
+			fatalError("Can't add audio input")
+		}
+		captureSession.addInput(audioInput)
 		
 		// Output (movie recording)
 		guard captureSession.canAddOutput(fileOutput) else {
@@ -99,6 +106,13 @@ class CameraViewController: UIViewController {
 			return device
 		}
 		fatalError("ERROR: No cameras on the device or you are running on the Simulator")
+	}
+	
+	private func bestAudio() -> AVCaptureDevice {
+		if let device = AVCaptureDevice.default(for: .audio) {
+			return device
+		}
+		fatalError("ERROR: No audio device")
 	}
 
     @IBAction func recordButtonPressed(_ sender: Any) {
