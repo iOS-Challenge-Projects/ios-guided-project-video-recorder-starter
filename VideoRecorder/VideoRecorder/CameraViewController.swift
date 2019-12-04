@@ -20,10 +20,41 @@ class CameraViewController: UIViewController {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		// Do any additional setup after loading the view.
-		
+	
+		setUpCamera()
+	}
+	
+	override func viewDidAppear(_ animated: Bool) {
+		super.viewDidAppear(animated)
+		captureSession.startRunning()
+	}
+
+	override func viewDidDisappear(_ animated: Bool) {
+		super.viewDidDisappear(animated)
+		captureSession.stopRunning()
+	}
+
+	private func setUpCamera() {
 		let camera = bestCamera()
 		
+		captureSession.beginConfiguration()
+		guard let cameraInput = try? AVCaptureDeviceInput(device: camera) else {
+			fatalError("Can't create an input form the camera, do something better than crashing")
+		}
+		
+		// Add inputs
+		guard captureSession.canAddInput(cameraInput) else {
+			fatalError("This session can't handle this type of input: \(cameraInput)")
+		}
+		captureSession.addInput(cameraInput)
+				
+		if captureSession.canSetSessionPreset(.hd1920x1080) {
+			captureSession.sessionPreset = .hd1920x1080
+		}
+		
+		captureSession.commitConfiguration()
+		
+		cameraView.session = captureSession
 	}
 	
 	private func bestCamera() -> AVCaptureDevice {
