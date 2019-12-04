@@ -45,6 +45,7 @@
                                 </constraints>
                                 <color key="tintColor" red="1" green="0.14913141730000001" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <state key="normal" image="Record"/>
+                                <state key="selected" image="Stop"/>
                                 <connections>
                                     <action selector="recordButtonPressed:" destination="B5a-nt-rvl" eventType="touchUpInside" id="i30-Jd-xjh"/>
                                 </connections>
@@ -77,5 +78,6 @@
     </scenes>
     <resources>
         <image name="Record" width="116" height="116"/>
+        <image name="Stop" width="116" height="116"/>
     </resources>
 </document>
