@@ -92,10 +92,19 @@ class CameraViewController: UIViewController {
 		captureSession.addInput(cameraInput)
 		
 		if captureSession.canSetSessionPreset(.hd1920x1080) {
-			captureSession.canSetSessionPreset(.hd1920x1080)
+			captureSession.sessionPreset = .hd1920x1080
 		}
 		
-		// TODO: Audio input
+		// Audio input
+		
+		let microphone = bestAudio()
+		guard let audioInput = try? AVCaptureDeviceInput(device: microphone) else {
+			fatalError("Can't create input from microphone")
+		}
+		guard captureSession.canAddInput(audioInput) else {
+			fatalError("Can't add audio input")
+		}
+		captureSession.addInput(audioInput)
 		
 		// Video output (movie)
 		guard captureSession.canAddOutput(fileOutput) else {
@@ -107,6 +116,14 @@ class CameraViewController: UIViewController {
 		cameraView.session = captureSession
 	}
 
+	private func bestAudio() -> AVCaptureDevice {
+		if let device = AVCaptureDevice.default(for: .audio) {
+			return device
+		}
+		fatalError("No audio")
+	}
+
+	
 	/// WideAngle Lens is on every iPhone that's been shipped through 2019
 	private func bestCamera() -> AVCaptureDevice {
 		if let device = AVCaptureDevice.default(.builtInUltraWideCamera, for: .video, position: .back) {
