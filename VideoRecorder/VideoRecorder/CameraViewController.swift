@@ -12,6 +12,7 @@ import AVFoundation
 class CameraViewController: UIViewController {
 
 	lazy private var captureSession = AVCaptureSession()
+	lazy private var fileOutput = AVCaptureMovieFileOutput()
 	
     @IBOutlet var recordButton: UIButton!
     @IBOutlet var cameraView: CameraPreviewView!
@@ -23,6 +24,8 @@ class CameraViewController: UIViewController {
 		cameraView.videoPlayerView.videoGravity = .resizeAspectFill
 		
 		setUpCamera()
+		
+		// TODO: Add tap gesture to replay video (repeat loop)
 	}
 	
 	override func viewDidAppear(_ animated: Bool) {
@@ -36,11 +39,25 @@ class CameraViewController: UIViewController {
 	}
 	
     @IBAction func recordButtonPressed(_ sender: Any) {
-
+		toggleRecording()
 	}
 	
 	// Methods
+	
+	func updateViews() {
+		recordButton.isSelected = fileOutput.isRecording
+	}
 
+	func toggleRecording() {
+		if fileOutput.isRecording {
+			// stop
+			fileOutput.stopRecording()
+		} else {
+			// start
+			fileOutput.startRecording(to: newRecordingURL(), recordingDelegate: self)
+		}
+	}
+	
 	func setUpCamera() {
 		let camera = bestCamera()
 		
@@ -63,7 +80,11 @@ class CameraViewController: UIViewController {
 		
 		// TODO: Audio input
 		
-		// TODO: Video output (movie)
+		// Video output (movie)
+		guard captureSession.canAddOutput(fileOutput) else {
+			fatalError("Can't setup the file output for the movie")
+		}
+		captureSession.addOutput(fileOutput)
 		
 		captureSession.commitConfiguration()
 		cameraView.session = captureSession
@@ -95,3 +116,16 @@ class CameraViewController: UIViewController {
 	}
 }
 
+extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
+	func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+		if let error = error {
+			print("Error saving video: \(error)")
+		}
+		print("Video: \(outputFileURL.path)")
+		updateViews()
+	}
+	
+	func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
+		updateViews()
+	}
+}
