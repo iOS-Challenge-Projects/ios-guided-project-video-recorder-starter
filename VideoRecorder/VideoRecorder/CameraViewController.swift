@@ -27,6 +27,9 @@ class CameraViewController: UIViewController {
         cameraView.videoPlayerView.videoGravity = .resizeAspectFill
         
         setUpCamera()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(tapGesture:)))
+        view.addGestureRecognizer(tapGesture)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -41,6 +44,43 @@ class CameraViewController: UIViewController {
         captureSession.stopRunning()
     }
 
+    func playMovie(url: URL) {
+        player = AVPlayer(url: url)
+        
+        let playerLayer = AVPlayerLayer(player: player)
+        
+        var topRect = view.bounds
+        topRect.size.height = topRect.height / 4
+        topRect.size.width = topRect.width / 4
+        topRect.origin.y = view.layoutMargins.top
+        
+        playerLayer.frame = topRect
+        view.layer.addSublayer(playerLayer)
+        
+        player.play()
+    }
+    
+    @objc func handleTapGesture(tapGesture: UITapGestureRecognizer) {
+        print("tap")
+        
+        switch tapGesture.state {
+            case .ended: // finished tapping the screen
+                replayMovie()
+            default:
+                print("handle other states: \(tapGesture.state)")
+        }
+    }
+
+
+    func replayMovie() {
+        if let player = player {
+            player.seek(to: CMTime.zero) // CMTime(0, 30)
+            
+            player.play()
+        }
+    }
+    
+    
     private func setUpCamera() {
         let camera = bestCamera()
         
@@ -54,7 +94,7 @@ class CameraViewController: UIViewController {
         }
         
         guard captureSession.canAddInput(cameraInput) else {
-            fatalError("Unable to add camera input")
+            fatalError("Unable to add camera input") // Programmer did something wrong ... 
         }
         captureSession.addInput(cameraInput)
         
@@ -64,7 +104,14 @@ class CameraViewController: UIViewController {
         }
         
         // Microphone
-        
+        let microphone = bestAudio()
+        guard let audioInput = try? AVCaptureDeviceInput(device: microphone) else {
+            fatalError("Can't create input from microphone")
+        }
+        guard captureSession.canAddInput(audioInput) else {
+            fatalError("Can't add audio input")
+        }
+        captureSession.addInput(audioInput)
         
         // Outputs
         guard captureSession.canAddOutput(fileOutput) else {
@@ -94,6 +141,14 @@ class CameraViewController: UIViewController {
         
         fatalError("No cameras available on the device (or you're using a simulator)")
     }
+    
+    private func bestAudio() -> AVCaptureDevice {
+        if let device = AVCaptureDevice.default(for: .audio) {
+            return device
+        }
+        fatalError("No audio")
+    }
+
     
 
     @IBAction func recordButtonPressed(_ sender: Any) {
@@ -129,6 +184,7 @@ class CameraViewController: UIViewController {
     private func updateViews() {
         recordButton.isSelected = isRecording
     }
+    
 }
 
 extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
@@ -145,5 +201,7 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         }
         print("Url: \(outputFileURL.path)")
         updateViews()
+        
+        playMovie(url: outputFileURL)
     }
 }
