@@ -29,6 +29,9 @@ class CameraViewController: UIViewController {
         cameraView.videoPlayerView.videoGravity = .resizeAspectFill
         
         setUpCaptureSession()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
+        view.addGestureRecognizer(tapGesture)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -62,6 +65,14 @@ class CameraViewController: UIViewController {
         
         // TODO: Add Microphone
         
+        let microphone = bestAudio()
+        guard let audioInput = try? AVCaptureDeviceInput(device: microphone),
+            captureSession.canAddInput(audioInput) else {
+                fatalError("Can't create and add input from microphone")
+        }
+        captureSession.addInput(audioInput)
+        
+        
         // Add Outputs
 
         captureSession.commitConfiguration()
@@ -73,6 +84,13 @@ class CameraViewController: UIViewController {
         cameraView.session = captureSession
     }
 
+    private func bestAudio() -> AVCaptureDevice {
+        if let device = AVCaptureDevice.default(for: .audio) {
+            return device
+        }
+        fatalError("No audio")
+    }
+    
     private func bestCamera() -> AVCaptureDevice {
         // ultra wide lens (0.5)
         if let device = AVCaptureDevice.default(.builtInUltraWideCamera, for: .video, position: .back) {
@@ -134,6 +152,25 @@ class CameraViewController: UIViewController {
         playerLayer.frame = topRect
         view.layer.addSublayer(playerLayer) // FIXME: adding multiple layers!
 
+        player.play()
+    }
+    
+    @objc func handleTapGesture(_ tapGesture: UITapGestureRecognizer) {
+        print("tap")
+        
+        switch(tapGesture.state) {
+        case .ended:
+            replayMovie()
+        default:
+            print("Handled other states: \(tapGesture.state)")
+        }
+    }
+
+    func replayMovie() {
+        guard let player = player else { return }
+
+        player.seek(to: CMTime.zero)
+        //CMTime(seconds: 2, preferredTimescale: 30) // 30 Frames per second (FPS)
         player.play()
     }
     
