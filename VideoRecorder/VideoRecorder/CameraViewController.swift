@@ -75,7 +75,7 @@ class CameraViewController: UIViewController {
     func replayMovie() {
         if let player = player {
             player.seek(to: CMTime.zero) // CMTime(0, 30)
-            
+//            CMTime(seconds: 90, preferredTimescale: 30)
             player.play()
         }
     }
@@ -89,11 +89,7 @@ class CameraViewController: UIViewController {
         
         // Inputs
         
-        guard let cameraInput = try? AVCaptureDeviceInput(device: camera) else {
-            fatalError("Device configured incorrectly")
-        }
-        
-        guard captureSession.canAddInput(cameraInput) else {
+        guard let cameraInput = try? AVCaptureDeviceInput(device: camera), captureSession.canAddInput(cameraInput) else {
             fatalError("Unable to add camera input") // Programmer did something wrong ... 
         }
         captureSession.addInput(cameraInput)
@@ -105,11 +101,9 @@ class CameraViewController: UIViewController {
         
         // Microphone
         let microphone = bestAudio()
-        guard let audioInput = try? AVCaptureDeviceInput(device: microphone) else {
-            fatalError("Can't create input from microphone")
-        }
-        guard captureSession.canAddInput(audioInput) else {
-            fatalError("Can't add audio input")
+        guard let audioInput = try? AVCaptureDeviceInput(device: microphone),
+            captureSession.canAddInput(audioInput) else {
+                fatalError("Can't create and add input from microphone")
         }
         captureSession.addInput(audioInput)
         
@@ -167,19 +161,18 @@ class CameraViewController: UIViewController {
             fileOutput.startRecording(to: newRecordingURL(), recordingDelegate: self)
         }
     }
-    
 	
-	/// Creates a new file URL in the documents directory
-	private func newRecordingURL() -> URL {
-		let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    /// Creates a new file URL in the documents directory
+    private func newRecordingURL() -> URL {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
 
-		let formatter = ISO8601DateFormatter()
-		formatter.formatOptions = [.withInternetDateTime]
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
 
-		let name = formatter.string(from: Date())
-		let fileURL = documentsDirectory.appendingPathComponent(name).appendingPathExtension("mov")
-		return fileURL
-	}
+        let name = formatter.string(from: Date())
+        let fileURL = documentsDirectory.appendingPathComponent(name).appendingPathExtension("mov")
+        return fileURL
+    }
     
     private func updateViews() {
         recordButton.isSelected = isRecording
