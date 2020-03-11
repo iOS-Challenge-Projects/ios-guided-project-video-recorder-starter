@@ -17,6 +17,8 @@ class CameraViewController: UIViewController {
     // Add movie output (.mov)
     lazy private var fileOutput = AVCaptureMovieFileOutput()
     
+    var player: AVPlayer!
+    
     @IBOutlet var recordButton: UIButton!
     @IBOutlet var cameraView: CameraPreviewView!
 
@@ -119,17 +121,35 @@ class CameraViewController: UIViewController {
     private func updateViews() {
         // How do I update the record button?
         recordButton.isSelected = fileOutput.isRecording
-        
     }
+    
+    func playMovie(url: URL) {
+        player = AVPlayer(url: url)
+        let playerLayer = AVPlayerLayer(player: player)
+        var topRect = view.bounds
+        topRect.size.height = topRect.height / 4
+        topRect.size.width = topRect.width / 4
+        topRect.origin.y = view.layoutMargins.top
+
+        playerLayer.frame = topRect
+        view.layer.addSublayer(playerLayer) // FIXME: adding multiple layers!
+
+        player.play()
+    }
+    
 }
 
 extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
     func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+
+        updateViews()
+
         if let error = error {
             print("Error recording video to \(outputFileURL) \(error)")
+            return
         }
         
-        updateViews()
+        playMovie(url: outputFileURL)
     }
     
     func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
