@@ -85,7 +85,12 @@ class CameraViewController: UIViewController {
         }
         
         // Audio
-        
+        let microphone = bestAudio()
+        guard let audioInput = try? AVCaptureDeviceInput(device: microphone),
+            captureSession.canAddInput(audioInput) else {
+                fatalError("Can't create microphone input")
+        }
+        captureSession.addInput(audioInput)
         
         // Add outputs
         
@@ -114,6 +119,13 @@ class CameraViewController: UIViewController {
         // Future: Add a button to toggle front/back camera
         
         fatalError("No cameras on the device (or you're running this on a Simulator which isn't supported)")
+    }
+    
+    private func bestAudio() -> AVCaptureDevice {
+        if let device = AVCaptureDevice.default(for: .audio) {
+            return device
+        }
+        fatalError("No audio")
     }
 
     @IBAction func recordButtonPressed(_ sender: Any) {
