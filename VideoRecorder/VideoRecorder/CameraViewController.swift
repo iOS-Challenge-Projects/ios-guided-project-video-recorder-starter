@@ -12,6 +12,7 @@ import AVFoundation
 class CameraViewController: UIViewController {
 
     lazy private var captureSession = AVCaptureSession()
+    lazy private var fileOutput = AVCaptureMovieFileOutput()
     
     @IBOutlet var recordButton: UIButton!
     @IBOutlet var cameraView: CameraPreviewView!
@@ -62,6 +63,10 @@ class CameraViewController: UIViewController {
         // Add outputs
         
         // Recording to disk
+        guard captureSession.canAddOutput(fileOutput) else {
+            fatalError("Cannot record to disk")
+        }
+        captureSession.addOutput(fileOutput)
         
         captureSession.commitConfiguration()
         
@@ -85,8 +90,12 @@ class CameraViewController: UIViewController {
     }
 
     @IBAction func recordButtonPressed(_ sender: Any) {
-
-	}
+        if fileOutput.isRecording {
+            fileOutput.stopRecording()  // Future: Play with pausing using another button
+        } else {
+            fileOutput.startRecording(to: newRecordingURL(), recordingDelegate: self)
+        }
+    }
 	
 	/// Creates a new file URL in the documents directory
 	private func newRecordingURL() -> URL {
@@ -99,5 +108,26 @@ class CameraViewController: UIViewController {
 		let fileURL = documentsDirectory.appendingPathComponent(name).appendingPathExtension("mov")
 		return fileURL
 	}
+    
+    private func updateViews() {
+        recordButton.isSelected = fileOutput.isRecording
+    }
 }
 
+extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
+    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+        
+        print("didFinishRecording")
+        if let error = error {
+            print("Video Recording Error: \(error)")
+        }
+        updateViews()
+    }
+    
+    func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
+        // Update UI
+        print("didStartRecording: \(fileURL)")
+        
+        updateViews()
+    }
+}
