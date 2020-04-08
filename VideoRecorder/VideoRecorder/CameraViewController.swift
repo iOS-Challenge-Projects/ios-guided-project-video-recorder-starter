@@ -14,6 +14,9 @@ class CameraViewController: UIViewController {
     lazy private var captureSession = AVCaptureSession()
     lazy private var fileOutput = AVCaptureMovieFileOutput()
     
+    private var player: AVPlayer! // It's an optional, but we're treating as a non-optional
+    // We're promising that we'll initialize before we use it
+    
     @IBOutlet var recordButton: UIButton!
     @IBOutlet var cameraView: CameraPreviewView!
 
@@ -24,6 +27,9 @@ class CameraViewController: UIViewController {
         cameraView.videoPlayerView.videoGravity = .resizeAspectFill
         
         setUpCaptureSession()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
+        view.addGestureRecognizer(tapGesture)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -36,6 +42,27 @@ class CameraViewController: UIViewController {
         super.viewDidDisappear(animated)
         
         captureSession.stopRunning()
+    }
+    
+    @objc private func handleTapGesture(_ tapGesture: UITapGestureRecognizer) {
+        print("tap")
+        
+        switch tapGesture.state {
+            case .ended:
+                replayMovie()
+            default:
+                break // ignore all other states
+        }
+    }
+    
+    private func replayMovie() {
+        guard let player = player else { return }
+        
+        // 30 FPS, 60 FPS, 24 Frames Per Second
+        // CMTime (0, 30) = 1st frame
+        // CMTime(1, 30) = 2nd frame ...
+        player.seek(to: .zero)
+        player.play()
     }
     
     
@@ -112,6 +139,22 @@ class CameraViewController: UIViewController {
     private func updateViews() {
         recordButton.isSelected = fileOutput.isRecording
     }
+    
+    private func playMovie(url: URL) {
+        player = AVPlayer(url: url)
+        
+        let playerLayer = AVPlayerLayer(player: player)
+        
+        // top left corner (Fullscreen, you'd need a close button)
+        var topRect = view.bounds
+        topRect.size.height = topRect.size.height / 4
+        topRect.size.width = topRect.size.width / 4 // create a constant for the "magic number"
+        topRect.origin.y = view.layoutMargins.top
+        playerLayer.frame = topRect
+        view.layer.addSublayer(playerLayer)
+        
+        player.play()
+    }
 }
 
 extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
@@ -120,6 +163,8 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         print("didFinishRecording")
         if let error = error {
             print("Video Recording Error: \(error)")
+        } else {
+            playMovie(url: outputFileURL)
         }
         updateViews()
     }
