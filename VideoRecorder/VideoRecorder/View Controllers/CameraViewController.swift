@@ -15,6 +15,8 @@ class CameraViewController: UIViewController {
     lazy private var captureSession = AVCaptureSession()
     lazy private var fileOutput = AVCaptureMovieFileOutput()
     
+    private var player: AVPlayer! //Its an optional but we force unwrap but we wont use it till it has a value/or does exist
+    
     //MARK: - Outlets
     @IBOutlet var recordButton: UIButton!
     @IBOutlet var cameraView: CameraPreviewView!
@@ -110,6 +112,27 @@ class CameraViewController: UIViewController {
         //This way we can use the bool of the fileOutput to set the state of the button
         recordButton.isSelected = fileOutput.isRecording
     }
+    
+    private func playMovie(url: URL){
+        player = AVPlayer(url: url)
+        
+        //To present a video we need a diferent layer than the one presenting the live video
+        let playerLayer = AVPlayerLayer(player: player)
+        
+        //Put the vide tumbnail on the top left corner
+        var topRect = view.bounds
+        topRect.size.height = topRect.size.height / 4
+        topRect.size.width = topRect.size.width / 4
+        //Prevent the tuhbnail from going out of the safe area
+        topRect.origin.y = view.layoutMargins.top
+        
+        playerLayer.frame = topRect
+        //Added to the view
+        view.layer.addSublayer(playerLayer)
+        
+        //Automatically play the movie
+        player.play()
+    }
 }
 
 
@@ -124,9 +147,9 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         print("Stop")
         if let error = error{
             print("Video Recording error: \(error)")
+        }else{
+            playMovie(url: outputFileURL)
         }
         updateViews()
     }
-    
-    
 }
