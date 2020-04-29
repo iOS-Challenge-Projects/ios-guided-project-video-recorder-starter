@@ -41,6 +41,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		04D24165245970200030F92C /* View Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				BD891F2D234504D00035EB8C /* CameraViewController.swift */,
+				BD891F3D2345055E0035EB8C /* CameraPreviewView.swift */,
+				BD891F41234505DB0035EB8C /* ViewController.swift */,
+			);
+			path = "View Controllers";
+			sourceTree = "<group>";
+		};
 		BD891F1D234504D00035EB8C = {
 			isa = PBXGroup;
 			children = (
@@ -62,9 +72,7 @@
 			children = (
 				BD891F29234504D00035EB8C /* AppDelegate.swift */,
 				BD891F2B234504D00035EB8C /* SceneDelegate.swift */,
-				BD891F2D234504D00035EB8C /* CameraViewController.swift */,
-				BD891F3D2345055E0035EB8C /* CameraPreviewView.swift */,
-				BD891F41234505DB0035EB8C /* ViewController.swift */,
+				04D24165245970200030F92C /* View Controllers */,
 				BD891F3F234505930035EB8C /* Main.storyboard */,
 				BD891F32234504D20035EB8C /* Assets.xcassets */,
 				BD891F34234504D20035EB8C /* LaunchScreen.storyboard */,
@@ -285,7 +293,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VXUQXR6S56;
+				DEVELOPMENT_TEAM = N3P8URX7UV;
 				INFOPLIST_FILE = VideoRecorder/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -303,7 +311,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VXUQXR6S56;
+				DEVELOPMENT_TEAM = N3P8URX7UV;
 				INFOPLIST_FILE = VideoRecorder/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
