@@ -85,6 +85,14 @@ class CameraViewController: UIViewController {
             captureSession.sessionPreset = .hd1920x1080
         }
         
+        //Audio
+        let microphone = bestAudio()
+        guard let audioInput = try? AVCaptureDeviceInput(device: microphone),
+            captureSession.canAddInput(audioInput) else {
+                fatalError("Can't create and add input from microphone")
+        }
+        captureSession.addInput(audioInput)
+        
         // Add output
         guard captureSession.canAddOutput(fileOutput) else {
             fatalError("Cannot record movie to disk")
@@ -111,6 +119,13 @@ class CameraViewController: UIViewController {
         
         fatalError("No cameras on the device (or you are running it on the iPhone simulator")
     }
+    
+    private func bestAudio() -> AVCaptureDevice {
+           if let device = AVCaptureDevice.default(for: .audio) {
+               return device
+           }
+           fatalError("No audio")
+       }
     
     private func updateViews(){
         //This way we can use the bool of the fileOutput to set the state of the button
