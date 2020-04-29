@@ -40,7 +40,11 @@ class CameraViewController: UIViewController {
     
     //MARK: - Actions
     @IBAction func recordButtonPressed(_ sender: Any) {
-        
+        if fileOutput.isRecording{
+            fileOutput.stopRecording()
+        }else{
+            fileOutput.startRecording(to: newRecordingURL(), recordingDelegate: self)
+        }
     }
     
     //MARK: - Methods
@@ -69,7 +73,7 @@ class CameraViewController: UIViewController {
                 fatalError("Can't create an input from the camera, do something better than crashing")
         }
         captureSession.addInput(cameraInput)
-
+        
         //Choose quality
         if captureSession.canSetSessionPreset(.hd1920x1080) {
             captureSession.sessionPreset = .hd1920x1080
@@ -80,10 +84,10 @@ class CameraViewController: UIViewController {
             fatalError("Cannot record movie to disk")
         }
         captureSession.addOutput(fileOutput)
-
+        
         
         captureSession.commitConfiguration()
-    
+        
         //Live Preview
         cameraView.session = captureSession
     }
@@ -101,5 +105,28 @@ class CameraViewController: UIViewController {
         
         fatalError("No cameras on the device (or you are running it on the iPhone simulator")
     }
+    
+    private func updateViews(){
+        //This way we can use the bool of the fileOutput to set the state of the button
+        recordButton.isSelected = fileOutput.isRecording
+    }
 }
 
+
+extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
+    
+    func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
+        print("didStartRecordingTo")
+        updateViews()
+    }
+    
+    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+        print("Stop")
+        if let error = error{
+            print("Video Recording error: \(error)")
+        }
+        updateViews()
+    }
+    
+    
+}
