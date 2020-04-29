@@ -13,6 +13,7 @@ class CameraViewController: UIViewController {
     
     //MARK: - Properties
     lazy private var captureSession = AVCaptureSession()
+    lazy private var fileOutput = AVCaptureMovieFileOutput()
     
     //MARK: - Outlets
     @IBOutlet var recordButton: UIButton!
@@ -24,6 +25,17 @@ class CameraViewController: UIViewController {
         
         // Resize camera preview to fill the entire screen
         cameraView.videoPlayerView.videoGravity = .resizeAspectFill
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        captureSession.startRunning()
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        //Stop running the live vide when the view disapear
+        captureSession.stopRunning()
     }
     
     //MARK: - Actions
@@ -45,6 +57,7 @@ class CameraViewController: UIViewController {
     }
     
     private func setupCaptureSession() {
+        //Helper func to get the camera
         let camera = bestCamera()
         
         captureSession.beginConfiguration()
@@ -57,35 +70,22 @@ class CameraViewController: UIViewController {
         }
         captureSession.addInput(cameraInput)
 
+        //Choose quality
         if captureSession.canSetSessionPreset(.hd1920x1080) {
             captureSession.sessionPreset = .hd1920x1080
         }
+        
+        // Add output
+        guard captureSession.canAddOutput(fileOutput) else {
+            fatalError("Cannot record movie to disk")
+        }
+        captureSession.addOutput(fileOutput)
 
+        
         captureSession.commitConfiguration()
-
+    
+        //Live Preview
         cameraView.session = captureSession
-//
-//        // Add audio input
-//
-//        let microphone = bestAudio()
-//        guard let audioInput = try? AVCaptureDeviceInput(device: microphone),
-//            captureSession.canAddInput(audioInput) else {
-//                fatalError("Can't create and add input from microphone")
-//        }
-//        captureSession.addInput(audioInput)
-//
-//        // ...
-//        captureSession.commitConfiguration()
-//
-//        // Add output
-//        guard captureSession.canAddOutput(fileOutput) else {
-//            fatalError("Cannot record movie to disk")
-//        }
-//        captureSession.addOutput(fileOutput)
-//
-//        captureSession.commitConfiguration()
-//
-//        cameraView.session = captureSession
     }
     
     private func bestCamera() -> AVCaptureDevice {
