@@ -26,6 +26,7 @@ class CameraViewController: UIViewController {
         super.viewDidLoad()
         
         // Resize camera preview to fill the entire screen
+        setupCaptureSession()
         cameraView.videoPlayerView.videoGravity = .resizeAspectFill
         
         //tap gesture recognizer
